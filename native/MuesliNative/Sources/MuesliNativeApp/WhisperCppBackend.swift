@@ -82,6 +82,9 @@ actor WhisperKitTranscriber {
         language: WhisperKitLanguage,
         modelName: String
     ) -> DecodingOptions {
+        if WhisperKitLanguage.isNorwegianOnlyModel(modelName) {
+            return DecodingOptions(language: "no")
+        }
         guard let effective = WhisperKitLanguage.preferenceForLoadedModel(language, modelName: modelName) else {
             return DecodingOptions()
         }
