@@ -6000,7 +6000,7 @@ public final class MuesliController: NSObject {
                     )
                 }
                 try Task.checkCancellation()
-                rawTranscript = diarization.transcript
+                rawTranscript = TranscriptFormatter.applyCustomWords(to: diarization.transcript, customWords: snapshot.customWords)
                 self.appState.meetingRetranscriptions[meeting.id]?.warning = diarization.warning
 
                 let templateSnapshot = self.meetingTemplateSnapshot(for: meeting)

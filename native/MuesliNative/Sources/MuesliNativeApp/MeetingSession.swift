@@ -842,11 +842,14 @@ final class MeetingSession {
         )
         let protectedTranscriptInputs = reconciledTranscriptInputs
 
-        let rawTranscript = TranscriptFormatter.merge(
-            micSegments: protectedTranscriptInputs.micSegments,
-            systemSegments: protectedTranscriptInputs.systemSegments,
-            diarizationSegments: protectedTranscriptInputs.diarizationSegments,
-            meetingStart: meetingStart
+        let rawTranscript = TranscriptFormatter.applyCustomWords(
+            to: TranscriptFormatter.merge(
+                micSegments: protectedTranscriptInputs.micSegments,
+                systemSegments: protectedTranscriptInputs.systemSegments,
+                diarizationSegments: protectedTranscriptInputs.diarizationSegments,
+                meetingStart: meetingStart
+            ),
+            customWords: config.customWords
         )
 
         let titleManualNotes = await manualNotesProvider?()
