@@ -328,10 +328,57 @@ public enum ManagedASRModelPlans {
         )
     }
 
+    /// Community WhisperKit/CoreML conversions of the National Library of
+    /// Norway's NB-Whisper models (NbAiLab/nb-whisper-*). Each is pinned to an
+    /// exact Hugging Face commit so the weights cannot change silently.
+    public struct NBWhisperSource: Sendable {
+        public let repository: String
+        public let revision: String
+        public let remoteDirectory: String
+    }
+
+    public static let nbWhisperSources: [String: NBWhisperSource] = [
+        // Converted from NbAiLab/nb-whisper-large; config file sizes match upstream.
+        "nb-whisper-large": NBWhisperSource(
+            repository: "digtek/whisperkit-nb-coreml",
+            revision: "8a7dae425120d4c9a2256ed840048886778908f1",
+            remoteDirectory: "NbAiLab_nb-whisper-large"
+        ),
+        // Converted from NbAiLab/nb-whisper-small (README documents the conversion).
+        "nb-whisper-small": NBWhisperSource(
+            repository: "Barrymanalow/nb-whisper-coreml",
+            revision: "cd3550b23ae5c90a37614c842656125d4676229e",
+            remoteDirectory: "nb-whisper-small"
+        ),
+    ]
+
+    public static func isNBWhisperModel(_ modelName: String) -> Bool {
+        nbWhisperSources[modelName] != nil
+    }
+
     public static func whisperKit(
         modelName: String,
         downloadRoot: URL? = nil
     ) -> ManagedASRModelPlan {
+        if let source = nbWhisperSources[modelName] {
+            let root = downloadRoot ?? FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Documents/huggingface/models/muesli-nb-whisper", isDirectory: true)
+            let requiredFiles = [
+                "MelSpectrogram.mlmodelc", "AudioEncoder.mlmodelc", "TextDecoder.mlmodelc",
+                "config.json", "generation_config.json",
+            ]
+            return ManagedASRModelPlan(
+                modelID: modelName,
+                repository: source.repository,
+                revision: source.revision,
+                cacheDirectory: root.appendingPathComponent(modelName, isDirectory: true),
+                selections: [HuggingFaceModelSelection(
+                    remoteDirectory: source.remoteDirectory,
+                    includedPaths: Set(requiredFiles)
+                )],
+                requiredArtifactAlternatives: completenessRequirements(for: requiredFiles)
+            )
+        }
         let fullName = modelName.hasPrefix("openai_whisper-") ? modelName : "openai_whisper-\(modelName)"
         let root = downloadRoot ?? FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Documents/huggingface/models/argmaxinc/whisperkit-coreml", isDirectory: true)

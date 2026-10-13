@@ -98,6 +98,24 @@ struct BackendOption: Equatable {
         recommended: false
     )
 
+    static let nbWhisperLarge = BackendOption(
+        backend: "whisper",
+        model: "nb-whisper-large",
+        label: "NB-Whisper Large (Norwegian)",
+        sizeLabel: "~3.1 GB",
+        description: "Nasjonalbibliotekets Norwegian-tuned Whisper (NbAiLab/nb-whisper-large), best for Norwegian including dialects. Community conversion for Apple devices; always transcribes as Norwegian. Slower than Parakeet and not streaming.",
+        recommended: false
+    )
+
+    static let nbWhisperSmall = BackendOption(
+        backend: "whisper",
+        model: "nb-whisper-small",
+        label: "NB-Whisper Small (Norwegian)",
+        sizeLabel: "~490 MB",
+        description: "A lighter version of Nasjonalbibliotekets Norwegian-tuned Whisper (NbAiLab/nb-whisper-small). Community conversion for Apple devices; always transcribes as Norwegian. Faster and smaller than Large, with lower accuracy. Not streaming.",
+        recommended: false
+    )
+
     static let nemotron35Multilingual = BackendOption(
         backend: "nemotron35",
         model: "FluidInference/Nemotron-3.5-ASR-Streaming-Multilingual-0.6b-CoreML",
@@ -193,6 +211,7 @@ struct BackendOption: Equatable {
         .whisperTiny, .whisperTinyEnglish,
         .whisperSmall, .whisperSmallEnglish,
         .whisperMediumEnglish, .whisperLargeTurbo,
+        .nbWhisperLarge, .nbWhisperSmall,
     ]
 
     static let qwen3Asr = BackendOption(
@@ -373,6 +392,7 @@ struct BackendOption: Equatable {
     /// English-only `.en` variants do not.
     var supportsWhisperLanguageSelection: Bool {
         backend == "whisper" && !WhisperKitLanguage.isEnglishOnlyModel(model)
+            && !WhisperKitLanguage.isNorwegianOnlyModel(model)
     }
 
     static func resolveDownloaded(
@@ -694,6 +714,11 @@ enum WhisperKitLanguage: String, CaseIterable, Codable, Sendable {
     /// English-only WhisperKit checkpoints (e.g. `tiny.en`) have no multilingual language tokens.
     static func isEnglishOnlyModel(_ modelName: String) -> Bool {
         modelName.hasSuffix(".en")
+    }
+
+    /// NB-Whisper checkpoints are Norwegian-tuned and always decode as Norwegian ("no").
+    static func isNorwegianOnlyModel(_ modelName: String) -> Bool {
+        ManagedASRModelPlans.isNBWhisperModel(modelName)
     }
 
     /// Preference to apply for a loaded WhisperKit model.

@@ -443,12 +443,31 @@ struct BackendOptionTests {
         #expect(BackendOption.whisperLargeTurbo.model.contains("large"))
     }
 
+    @Test("NB-Whisper variants are pinned, Norwegian-only, and meeting-capable")
+    func nbWhisperVariants() {
+        for option in [BackendOption.nbWhisperLarge, .nbWhisperSmall] {
+            #expect(option.backend == "whisper")
+            #expect(option.supportsMeetingTranscription)
+            #expect(!option.supportsWhisperLanguageSelection)
+            #expect(BackendOption.resolve(backend: "whisper", model: option.model) == option)
+            let plan = ManagedASRModelPlans.whisperKit(modelName: option.model)
+            #expect(plan.revision.count == 40)
+            #expect(plan.revision.allSatisfy { $0.isHexDigit })
+            #expect(plan.mirror == nil)
+            #expect(plan.requiredArtifactAlternatives.contains(["config.json"]))
+        }
+        #expect(BackendOption.whisperSmall.supportsWhisperLanguageSelection)
+        let options = WhisperKitTranscriber.makeDecodeOptions(language: .english, modelName: "nb-whisper-large")
+        #expect(options.language == "no")
+    }
+
     @Test("English-only and multilingual Whisper checkpoints are always in the catalog")
     func whisperCatalogIncludesEveryVariant() {
         #expect(BackendOption.whisperFamily == [
             .whisperTiny, .whisperTinyEnglish,
             .whisperSmall, .whisperSmallEnglish,
             .whisperMediumEnglish, .whisperLargeTurbo,
+            .nbWhisperLarge, .nbWhisperSmall,
         ])
         #expect(BackendOption.resolve(backend: "whisper", model: "tiny.en") == .whisperTinyEnglish)
         #expect(BackendOption.resolve(backend: "whisper", model: "small.en") == .whisperSmallEnglish)
