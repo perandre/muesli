@@ -3,6 +3,23 @@ import Foundation
 import MuesliCore
 
 enum TranscriptFormatter {
+    /// Applies the user's custom words to a finished meeting transcript.
+    /// Runs after chunk reconciliation so dedup still sees raw ASR text, and
+    /// leaves each line's "[hh:mm:ss] Speaker:" prefix untouched.
+    static func applyCustomWords(to transcript: String, customWords: [CustomWord]) -> String {
+        guard !customWords.isEmpty, !transcript.isEmpty else { return transcript }
+        return transcript
+            .components(separatedBy: "\n")
+            .map { line in
+                guard let prefix = line.range(of: #"^\[\d{2}:\d{2}:\d{2}\] [^:]+: "#, options: .regularExpression) else {
+                    return CustomWordMatcher.apply(text: line, customWords: customWords)
+                }
+                let body = String(line[prefix.upperBound...])
+                return String(line[prefix]) + CustomWordMatcher.apply(text: body, customWords: customWords)
+            }
+            .joined(separator: "\n")
+    }
+
     /// Backward-compatible merge without diarization.
     static func merge(micSegments: [SpeechSegment], systemSegments: [SpeechSegment], meetingStart: Date) -> String {
         merge(micSegments: micSegments, systemSegments: systemSegments, diarizationSegments: nil, meetingStart: meetingStart)

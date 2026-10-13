@@ -213,6 +213,8 @@ enum AudioFileImportController {
             }
         }
 
+        diarizedTranscript = TranscriptFormatter.applyCustomWords(to: diarizedTranscript, customWords: config.customWords)
+
         try Task.checkCancellation()
 
         let wordCount = DictationStore.countWords(in: diarizedTranscript)

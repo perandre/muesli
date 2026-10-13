@@ -499,4 +499,27 @@ struct TranscriptFormatterTests {
         )
     }
 
+    @Test("applies custom words to transcript bodies but not speaker prefixes")
+    func appliesCustomWordsToBodies() {
+        let transcript = """
+        [00:07:12] Speaker 2: Hva FrontCom syns er interessant.
+        [00:21:23] Speaker 1: Jeg bruker Sotero fordi det har API.
+        """
+        let words = [
+            CustomWord(word: "Frontkom", replacement: nil),
+            CustomWord(word: "Zotero", replacement: nil),
+            CustomWord(word: "Speaker", replacement: "Høyttaler"),
+        ]
+        let result = TranscriptFormatter.applyCustomWords(to: transcript, customWords: words)
+        #expect(result == """
+        [00:07:12] Speaker 2: Hva Frontkom syns er interessant.
+        [00:21:23] Speaker 1: Jeg bruker Zotero fordi det har API.
+        """)
+    }
+
+    @Test("custom words leave transcript unchanged when list is empty")
+    func customWordsEmptyListIsNoOp() {
+        let transcript = "[00:00:00] Speaker 1: FrontCom"
+        #expect(TranscriptFormatter.applyCustomWords(to: transcript, customWords: []) == transcript)
+    }
 }
