@@ -870,11 +870,11 @@ actor WhisperCLITranscriber: AudioTranscribing {
         // Multilingual variants need detectLanguage; WhisperKit defaults otherwise force English.
         let decodeOptions: DecodingOptions
         if modelName.hasSuffix(".en") {
-            decodeOptions = DecodingOptions()
+            decodeOptions = DecodingOptions(skipSpecialTokens: true)
         } else if ManagedASRModelPlans.isNBWhisperModel(modelName) {
-            decodeOptions = DecodingOptions(language: "no")
+            decodeOptions = DecodingOptions(language: "no", skipSpecialTokens: true)
         } else {
-            decodeOptions = DecodingOptions(detectLanguage: true)
+            decodeOptions = DecodingOptions(detectLanguage: true, skipSpecialTokens: true)
         }
         let results = try await whisperKit.transcribe(audioPath: wavURL.path, decodeOptions: decodeOptions)
         let text = results.map(\.text).joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)

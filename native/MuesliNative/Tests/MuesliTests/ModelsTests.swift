@@ -459,6 +459,20 @@ struct BackendOptionTests {
         #expect(BackendOption.whisperSmall.supportsWhisperLanguageSelection)
         let options = WhisperKitTranscriber.makeDecodeOptions(language: .english, modelName: "nb-whisper-large")
         #expect(options.language == "no")
+        #expect(options.skipSpecialTokens)
+    }
+
+    @Test("Whisper decode options always skip special tokens")
+    func whisperDecodeOptionsSkipSpecialTokens() {
+        let cases: [(WhisperKitLanguage, String)] = [
+            (.auto, "small"),
+            (.english, "small"),
+            (.auto, "tiny.en"),
+            (.auto, "nb-whisper-small"),
+        ]
+        for (language, model) in cases {
+            #expect(WhisperKitTranscriber.makeDecodeOptions(language: language, modelName: model).skipSpecialTokens)
+        }
     }
 
     @Test("English-only and multilingual Whisper checkpoints are always in the catalog")
