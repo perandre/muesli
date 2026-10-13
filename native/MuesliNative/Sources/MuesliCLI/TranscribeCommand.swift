@@ -25,6 +25,8 @@ enum TranscribeModel: String, CaseIterable, ExpressibleByArgument, Encodable {
     case whisperSmallEnglish = "whisper-small-english"
     case whisperMediumEnglish = "whisper-medium-english"
     case whisperLargeTurbo = "whisper-large-turbo"
+    case nbWhisperLarge = "nb-whisper-large"
+    case nbWhisperSmall = "nb-whisper-small"
 
     /// `nil` for models that don't go through `FluidAudioCLITranscriber`'s
     /// batch `AsrManager` path (streaming, or a different FluidAudio manager).
@@ -35,7 +37,7 @@ enum TranscribeModel: String, CaseIterable, ExpressibleByArgument, Encodable {
         case .parakeetUnified, .parakeetEou320ms, .senseVoice, .qwen3Asr, .nemotron35,
              .whisperTiny, .whisperTinyEnglish,
              .whisperSmall, .whisperSmallEnglish, .whisperMediumEnglish,
-             .whisperLargeTurbo:
+             .whisperLargeTurbo, .nbWhisperLarge, .nbWhisperSmall:
             return nil
         }
     }
@@ -49,6 +51,8 @@ enum TranscribeModel: String, CaseIterable, ExpressibleByArgument, Encodable {
         case .whisperSmallEnglish: return "small.en"
         case .whisperMediumEnglish: return "medium.en"
         case .whisperLargeTurbo: return "large-v3-v20240930_626MB"
+        case .nbWhisperLarge: return "nb-whisper-large"
+        case .nbWhisperSmall: return "nb-whisper-small"
         case .parakeetV3, .parakeetV2, .parakeetUnified, .parakeetEou320ms, .senseVoice, .qwen3Asr, .nemotron35:
             return nil
         }
@@ -635,7 +639,7 @@ struct RoutingAudioTranscriber: AudioTranscribing {
         case .nemotron35: transcriber = nemotron35
         case .whisperTiny, .whisperTinyEnglish,
              .whisperSmall, .whisperSmallEnglish, .whisperMediumEnglish,
-             .whisperLargeTurbo:
+             .whisperLargeTurbo, .nbWhisperLarge, .nbWhisperSmall:
             transcriber = whisper
         }
         return try await transcriber.transcribe(wavURL: wavURL, model: model, progress: progress)
@@ -867,6 +871,8 @@ actor WhisperCLITranscriber: AudioTranscribing {
         let decodeOptions: DecodingOptions
         if modelName.hasSuffix(".en") {
             decodeOptions = DecodingOptions()
+        } else if ManagedASRModelPlans.isNBWhisperModel(modelName) {
+            decodeOptions = DecodingOptions(language: "no")
         } else {
             decodeOptions = DecodingOptions(detectLanguage: true)
         }
