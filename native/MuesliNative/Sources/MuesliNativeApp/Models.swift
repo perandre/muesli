@@ -678,6 +678,7 @@ enum WhisperKitLanguage: String, CaseIterable, Codable, Sendable {
     case korean = "ko"
     case russian = "ru"
     case arabic = "ar"
+    case norwegian = "no"
 
     static let defaultLanguage: Self = .auto
 
@@ -696,6 +697,7 @@ enum WhisperKitLanguage: String, CaseIterable, Codable, Sendable {
         case .korean: return "Korean"
         case .russian: return "Russian"
         case .arabic: return "Arabic"
+        case .norwegian: return "Norwegian"
         }
     }
 
